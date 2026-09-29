@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surprise Spin Wheel 🎡</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #ffe6f2, #fff4d6);
+  color: #5a2745;
+}
+
+.container {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: 30px;
+}
+
+.subtitle {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.wheel-box {
+  position: relative;
+  width: min(90vw, 430px);
+  height: min(90vw, 430px);
+  margin: auto;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: transform 5s cubic-bezier(0.15, 0.75, 0.15, 1);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.pointer {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 38px solid #e91e63;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.25));
+}
+
+button {
+  margin-top: 25px;
+  padding: 15px 45px;
+  border: none;
+  border-radius: 30px;
+  background: #e91e63;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(233,30,99,.3);
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.result {
+  display: none;
+  margin-top: 25px;
+  padding: 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,.15);
+}
+
+.result h2 {
+  margin-top: 0;
+}
+
+.result-text {
+  font-size: 22px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Surprise Spin Wheel 🎡</h1>
+  <div class="subtitle">လှည့်ပြီး မင်းရဲ့ Surprise ကိုရှာကြည့် 💕</div>
+
+  <div class="wheel-box">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="700" height="700"></canvas>
+  </div>
+
+  <button id="spinButton">SPIN 🎡</button>
+
+  <div class="result" id="result">
+    <h2>🎉 Your Surprise 🎉</h2>
+    <div class="result-text" id="resultText"></div>
+  </div>
+
+</div>
+
+<script>
+const prizes = [
+  "💋 အာဘွားပေးရမယ်",
+  "💕 မောင်တို့ပြန်တွဲကြမယ်",
+  "🪔 သီတင်းကျွတ်မုန့်ဖိုး — 20,000 ကျပ်",
+  "🪔 သီတင်းကျွတ်မုန့်ဖိုး — 30,000 ကျပ်",
+  "🪔 သီတင်းကျွတ်မုန့်ဖိုး — 50,000 ကျပ်",
+  "🪔 သီတင်းကျွတ်မုန့်ဖိုး — 60,000 ကျပ်",
+  "🪔 သီတင်းကျွတ်မုန့်ဖိုး — 70,000 ကျပ်"
+];
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const spinButton = document.getElementById("spinButton");
+const result = document.getElementById("result");
+const resultText = document.getElementById("resultText");
+
+const center = canvas.width / 2;
+const radius = 330;
+const segmentAngle = (2 * Math.PI) / prizes.length;
+
+let currentRotation = 0;
+
+function drawWheel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < prizes.length; i++) {
+    const start = i * segmentAngle;
+    const end = start + segmentAngle;
+
+    ctx.beginPath();
+    ctx.moveTo(center, center);
+    ctx.arc(center, center, radius, start, end);
+    ctx.closePath();
+
+    ctx.fillStyle = i % 2 === 0 ? "#ffb6d5" : "#ffd98e";
+    ctx.fill();
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    ctx.save();
+
+    ctx.translate(center, center);
+    ctx.rotate(start + segmentAngle / 2);
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#5a2745";
+    ctx.font = "bold 22px Arial";
+
+    let text = prizes[i];
+
+    if (text.length > 24) {
+      text = text.substring(0, 24) + "...";
+    }
+
+    ctx.fillText(text, radius - 20, 8);
+
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(center, center, 55, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  ctx.strokeStyle = "#e91e63";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  ctx.fillStyle = "#e91e63";
+  ctx.font = "bold 20px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("SPIN", center, center + 7);
+}
+
+drawWheel();
+
+spinButton.addEventListener("click", () => {
+
+  spinButton.disabled = true;
+  result.style.display = "none";
+
+  const winner = Math.floor(Math.random() * prizes.length);
+
+  const extraSpins = 6 + Math.floor(Math.random() * 3);
+
+  const targetAngle =
+    360 - (winner * (360 / prizes.length) + (180 / prizes.length));
+
+  currentRotation += extraSpins * 360 + targetAngle;
+
+  canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+  setTimeout(() => {
+
+    resultText.textContent = prizes[winner];
+    result.style.display = "block";
+
+    spinButton.disabled = false;
+
+  }, 5200);
+});
+</script>
+
+</body>
+</html>
